@@ -71,6 +71,24 @@ Daarna kun je tegen je AI-assistent zeggen: *"Zoek in Picnic naar havermelk, voe
 
 Beschikbare tools: `picnic_get_user`, `picnic_search_products`, `picnic_add_to_cart`, `picnic_add_products`, `picnic_get_cart`, `picnic_remove_from_cart`, `picnic_clear_cart`, `picnic_get_delivery_slots`, `picnic_select_delivery_slot`, `picnic_start_checkout`, `picnic_get_checkout_status`, `picnic_list_orders`.
 
+## Gebruiken als connector (Mistral Studio / Le Chat)
+
+Ja: de MCP-server is een standaard MCP-server, en Studio ondersteunt **Custom MCP Connectors** op basis van een server-URL. De server draait nu in twee modi:
+
+```bash
+picnic-mcp                                        # stdio (lokale MCP-clients)
+picnic-mcp --transport streamable-http --port 8000   # HTTP op /mcp (voor een connector)
+```
+
+Stappen:
+
+1. Draai de server zelf op een locatie met een **HTTPS-URL met geldig certificaat** (Studio controleert de server via HTTPS; streamable HTTP op `/mcp` is de standaard). Bijvoorbeeld op je eigen server/VPS achter een reverse proxy. De Picnic-inloggegevens zet je als env vars (`PICNIC_EMAIL`/`PICNIC_PASSWORD` of `PICNIC_AUTH_TOKEN`) in de omgeving van de server — die gaan nooit via de connector mee.
+2. In Studio/Le Chat: **Connectors → + Add Connector → Custom MCP Connector**. Vul in: naam `picnic`, server-URL `https://<jouw-server>/mcp`.
+3. Staat de server niet publiek? Beveilig de endpoint dan met een Bearer-token (Studio detecteert automatisch `Authorization`-header-authenticatie).
+4. Zet bij de connector-permissies de schrijf-acties (`picnic_add_to_cart`, `picnic_start_checkout`, ...) op **handmatige Genehmigung** — alleen lees-acties pre-autoriseren.
+
+Daarna kun je in Le Chat/Studio zeggen: *"Zoek bij Picnic naar havermelk, voeg 2 toe aan mijn winkelwagen en kies het eerste bezorgmoment."*
+
 ## Veiligheid
 
 - `picnic_start_checkout` vereist expliciet `confirm=true`; de tool-beschrijving instrueert de AI om de gebruiker altijd eerst om toestemming te vragen. De betaling zelf wordt **nooit** automatisch uitgevoerd — die rond je af in de Picnic-app.

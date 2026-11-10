@@ -1,5 +1,7 @@
+import argparse
 import functools
 import json
+import os
 from typing import Any
 
 from mcp.server.mcpserver import MCPServer
@@ -140,7 +142,20 @@ def picnic_list_orders() -> Any:
 
 
 def main() -> None:
-    server.run("stdio")
+    parser = argparse.ArgumentParser(prog="picnic-mcp", description="Picnic MCP-server (stdio of streamable-http).")
+    parser.add_argument(
+        "--transport",
+        choices=["stdio", "streamable-http"],
+        default=os.environ.get("PICNIC_MCP_TRANSPORT", "stdio"),
+        help="stdio (default, voor lokale MCP-clients) of streamable-http (voor een connector via een URL)",
+    )
+    parser.add_argument("--host", default=os.environ.get("PICNIC_MCP_HOST", "127.0.0.1"))
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PICNIC_MCP_PORT", "8000")))
+    args = parser.parse_args()
+    if args.transport == "stdio":
+        server.run("stdio")
+    else:
+        server.run("streamable-http", host=args.host, port=args.port, streamable_http_path="/mcp")
 
 
 if __name__ == "__main__":
